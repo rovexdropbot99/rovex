@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>rovex_drop</title>
+
+  <style>
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #050510;
+      color: white;
+      overflow-x: hidden;
+    }
+
+    /* Background */
+
+    .background {
+      position: fixed;
+
+      width: 500px;
+      height: 500px;
+
+      border-radius: 50%;
+
+      background: #6c2cff;
+
+      filter: blur(180px);
+
+      opacity: 0.25;
+
+      pointer-events: none;
+
+      z-index: -5;
+
+      animation:
+        glowMove 8s ease-in-out infinite alternate;
+    }
+
+    /* Mouse Glow */
+
+    .mouse-glow {
+      position: fixed;
+
+      width: 250px;
+      height: 250px;
+
+      border-radius: 50%;
+
+      background:
+        radial-gradient(
+          circle,
+          rgba(139, 92, 255, 0.22),
+          transparent 70%
+        );
+
+      pointer-events: none;
+
+      transform:
+        translate(-50%, -50%);
+
+      z-index: -1;
+    }
+
+    /* Particles */
+
+    .particles {
+      position: fixed;
+
+      inset: 0;
+
+      pointer-events: none;
+
+      overflow: hidden;
+
+      z-index: -3;
+    }
+
+    .particles::before,
+    .particles::after {
+      content: "";
+
+      position: absolute;
+
+      width: 5px;
+      height: 5px;
+
+      border-radius: 50%;
+
+      background: #8b5cff;
+
+      box-shadow:
+        10vw 20vh #8b5cff,
+        20vw 80vh #a855f7,
+        35vw 30vh #6c2cff,
+        45vw 70vh #8b5cff,
+        55vw 15vh #a855f7,
+        65vw 85vh #6c2cff,
+        75vw 35vh #8b5cff,
+        85vw 65vh #a855f7,
+        95vw 20vh #6c2cff;
+
+      animation:
+        particlesMove 9s linear infinite;
+    }
+
+    .particles::after {
+      animation-delay: -4s;
+      opacity: 0.4;
+      transform: scale(0.6);
+    }
+
+    /* Navigation */
+
+    nav {
+      position: relative;
+
+      height: 70px;
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+      padding: 0 7%;
+
+      background:
+        rgba(5, 5, 16, 0.75);
+
+      border-bottom:
+        1px solid rgba(255,255,255,0.1);
+
+      backdrop-filter: blur(15px);
+    }
+
+    .logo {
+      font-size: 25px;
+
+      font-weight: 900;
+
+      letter-spacing: 2px;
+
+      text-shadow:
+        0 0 10px #6c2cff,
+        0 0 25px #6c2cff;
+    }
+
+    nav a {
+      color: #aaa;
+
+      text-decoration: none;
+
+      margin-left: 25px;
+
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      color: white;
+
+      text-shadow:
+        0 0 10px #8b5cff,
+        0 0 20px #8b5cff;
+    }
+
+    /* Hero */
+
+    .hero {
+      min-height:
+        calc(100vh - 70px);
+
+      display: flex;
+
+      justify-content: center;
+
+      align-items: center;
+
+      text-align: center;
+
+      padding: 40px 20px;
+    }
+
+    .hero-content {
+      animation:
+        appear 1.2s ease;
+    }
+
+    .hero h1 {
+      font-size:
+        clamp(50px, 11vw, 105px);
+
+      font-weight: 900;
+
+      letter-spacing: 6px;
+
+      text-shadow:
+        0 0 10px #6c2cff,
+        0 0 30px #6c2cff,
+        0 0 60px #6c2cff,
+        0 0 100px #6c2cff;
+
+      animation:
+        titleGlow 3s ease-in-out infinite alternate;
+    }
+
+    .hero p {
+      margin-top: 15px;
+
+      color: #aaa;
+
+      font-size: 19px;
+    }
+
+    /* Explore */
+
+    .explore {
+      display: inline-block;
+
+      margin-top: 30px;
+
+      padding: 13px 32px;
+
+      border-radius: 30px;
+
+      background:
+        linear-gradient(
+          90deg,
+          #6c2cff,
+          #a855f7
+        );
+
+      color: white;
+
+      text-decoration: none;
+
+      font-weight: bold;
+
+      box-shadow:
+        0 0 20px
+        rgba(108,44,255,0.4);
+
+      transition: 0.3s;
+    }
+
+    .explore:hover {
+      transform: scale(1.08);
+
+      box-shadow:
+        0 0 30px #6c2cff,
+        0 0 60px rgba(168,85,247,0.5);
+    }
+
+    /* Cards */
+
+    .cards {
+      display: flex;
+
+      justify-content: center;
+
+      gap: 20px;
+
+      margin-top: 45px;
+
+      flex-wrap: wrap;
+
+      perspective: 1000px;
+    }
+
+    .card {
+      width: 190px;
+
+      padding: 28px 22px;
+
+      border-radius: 20px;
+
+      background:
+        rgba(255,255,255,0.06);
+
+      border:
+        1px solid rgba(255,255,255,0.12);
+
+      backdrop-filter: blur(15px);
+
+      transform-style:
+        preserve-3d;
+
+      transition:
+        transform 0.15s ease,
+        box-shadow 0.3s ease,
+        border 0.3s ease;
+
+      cursor: pointer;
+
+      text-decoration: none;
+
+      color: white;
+
+      display: block;
+
+      animation:
+        cardAppear 1s ease;
+    }
+
+    .card:hover {
+      border-color:
+        rgba(139,92,255,0.6);
+
+      box-shadow:
+        0 0 25px
+        rgba(108,44,255,0.35),
+
+        0 0 60px
+        rgba(108,44,255,0.12);
+    }
+
+    .card-icon {
+      font-size: 40px;
+
+      margin-bottom: 12px;
+
+      filter:
+        drop-shadow(
+          0 0 10px #8b5cff
+        );
+    }
+
+    .card h2 {
+      margin-bottom: 10px;
+
+      font-size: 24px;
+    }
+
+    .card p {
+      color: #999;
+
+      font-size: 14px;
+
+      line-height: 1.5;
+    }
+
+    /* Animations */
+
+    @keyframes appear {
+
+      from {
+        opacity: 0;
+
+        transform:
+          translateY(40px);
+      }
+
+      to {
+        opacity: 1;
+
+        transform:
+          translateY(0);
+      }
+
+    }
+
+    @keyframes cardAppear {
+
+      from {
+        opacity: 0;
+
+        transform:
+          translateY(40px)
+          scale(0.9);
+      }
+
+      to {
+        opacity: 1;
+
+        transform:
+          translateY(0)
+          scale(1);
+      }
+
+    }
+
+    @keyframes titleGlow {
+
+      from {
+        filter:
+          brightness(0.8);
+      }
+
+      to {
+        filter:
+          brightness(1.35);
+      }
+
+    }
+
+    @keyframes glowMove {
+
+      from {
+        transform:
+          translate(-70%, -40%)
+          scale(0.8);
+      }
+
+      to {
+        transform:
+          translate(20%, 30%)
+          scale(1.2);
+      }
+
+    }
+
+    @keyframes particlesMove {
+
+      0% {
+        transform:
+          translateY(120px);
+
+        opacity: 0;
+      }
+
+      20% {
+        opacity: 1;
+      }
+
+      80% {
+        opacity: 1;
+      }
+
+      100% {
+        transform:
+          translateY(-150px);
+
+        opacity: 0;
+      }
+
+    }
+
+    /* Mobile */
+
+    @media (max-width: 600px) {
+
+      nav {
+        padding: 0 15px;
+      }
+
+      .logo {
+        font-size: 18px;
+      }
+
+      nav a {
+        margin-left: 8px;
+        font-size: 12px;
+      }
+
+      .hero h1 {
+        letter-spacing: 3px;
+      }
+
+      .hero p {
+        font-size: 16px;
+      }
+
+      .card {
+        width: 160px;
+      }
+
+      .mouse-glow {
+        display: none;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <!-- Background -->
+
+  <div class="background"></div>
+
+  <div class="particles"></div>
+
+  <div class="mouse-glow"></div>
+
+
+  <!-- Navigation -->
+
+  <nav>
+
+    <div class="logo">
+      rovex_drop
+    </div>
+
+    <div>
+
+      <a href="home.html">
+        Home
+      </a>
+
+      <a href="about.html">
+        About
+      </a>
+
+      <a href="contact.html">
+        Contact
+      </a>
+
+    </div>
+
+  </nav>
+
+
+  <!-- Main -->
+
+  <section class="hero">
+
+    <div class="hero-content">
+
+      <h1>
+        rovex_drop
+      </h1>
+
+      <p>
+        Welcome to my digital world 🚀
+      </p>
+
+
+      <a
+        href="about.html"
+        class="explore"
+      >
+        EXPLORE
+      </a>
+
+
+      <!-- Cards -->
+
+      <div class="cards">
+
+
+        <!-- BOX -->
+
+        <div class="card">
+
+          <div class="card-icon">
+            📦
+          </div>
+
+          <h2>
+            Box
+          </h2>
+
+          <p>
+            Welcome to the Box section.
+          </p>
+
+        </div>
+
+
+        <!-- PVP -->
+
+        <div class="card">
+
+          <div class="card-icon">
+            ⚔️
+          </div>
+
+          <h2>
+            PVP
+          </h2>
+
+          <p>
+            Welcome to the PVP section.
+          </p>
+
+        </div>
+
+
+        <!-- RECKET -->
+
+        <a
+          href="rocket.html"
+          class="card"
+        >
+
+          <div class="card-icon">
+            🚀
+          </div><h2>
+            Recket
+          </h2>
+
+          <p>
+            Explore Recket
+          </p>
+
+        </a>
+
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- Mouse Effect -->
+
+  <script>
+
+    const mouseGlow =
+      document.querySelector(
+        ".mouse-glow"
+      );
+
+    const cards =
+      document.querySelectorAll(
+        ".card"
+      );
+
+    document.addEventListener(
+      "mousemove",
+      function(event) {
+
+        mouseGlow.style.left =
+          event.clientX + "px";
+
+        mouseGlow.style.top =
+          event.clientY + "px";
+
+        cards.forEach(
+          function(card) {
+
+            const rect =
+              card.getBoundingClientRect();
+
+            const x =
+              event.clientX -
+              rect.left;
+
+            const y =
+              event.clientY -
+              rect.top;
+
+            const centerX =
+              rect.width / 2;
+
+            const centerY =
+              rect.height / 2;
+
+            const rotateX =
+              (y - centerY) / 12;
+
+            const rotateY =
+              (centerX - x) / 12;
+
+            if (
+              event.clientX >= rect.left &&
+              event.clientX <= rect.right &&
+              event.clientY >= rect.top &&
+              event.clientY <= rect.bottom
+            ) {
+
+              card.style.transform =
+                "rotateX(" +
+                rotateX +
+                "deg) rotateY(" +
+                rotateY +
+                "deg) translateY(-10px) scale(1.04)";
+
+            } else {
+
+              card.style.transform =
+                "rotateX(0deg) rotateY(0deg)";
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+  </script>
+
+</body>
+
+</html>
