@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recket</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #070712;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+nav {
+  height: 65px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0c0c18;
+  border-bottom: 1px solid #29293b;
+}
+
+.logo {
+  font-size: 21px;
+  font-weight: bold;
+}
+
+.ton {
+  color: #35baff;
+  font-weight: bold;
+}
+
+.wallet {
+  margin-left: 8px;
+  padding: 9px 13px;
+  color: white;
+  background: #151522;
+  border: 1px solid #343449;
+  border-radius: 9px;
+}
+
+h1 {
+  margin-top: 28px;
+  color: #9b70ff;
+  letter-spacing: 5px;
+  text-shadow: 0 0 20px #7c3cff;
+}
+
+#status {
+  color: #999;
+}
+
+#multi {
+  margin: 12px;
+  font-size: 55px;
+  font-weight: bold;
+}
+
+#timer {
+  height: 22px;
+  color: #a78bfa;
+}
+
+#game {
+  position: relative;
+  width: 90%;
+  max-width: 700px;
+  height: 300px;
+  margin: 15px auto;
+  overflow: hidden;
+  border: 1px solid #303047;
+  border-radius: 22px;
+  background: #0a0a18;
+}
+
+#rocket {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  font-size: 65px;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  transition: left .2s, top .2s;
+  filter: drop-shadow(0 0 15px orange);
+}
+
+#boom {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  font-size: 90px;
+  transform: translate(-50%, -50%);
+}
+
+.controls {
+  width: 90%;
+  max-width: 700px;
+  margin: 15px auto;
+  display: flex;
+  gap: 8px;
+}
+
+#amount {
+  flex: 1;
+  min-width: 0;
+  padding: 13px;
+  color: white;
+  background: #13131f;
+  border: 1px solid #343449;
+  border-radius: 9px;
+}
+
+button {
+  padding: 13px 18px;
+  border: 0;
+  border-radius: 9px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#bet {
+  background: #7040dd;
+}
+
+#cash {
+  background: #159447;
+}
+
+button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+#result {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+#message {
+  margin-top: 7px;
+  color: #999;
+  font-size: 13px;
+}
+
+.history-title {
+  margin-top: 25px;
+  color: #888;
+  font-size: 13px;
+}
+
+#history {
+  width: 90%;
+  max-width: 700px;
+  margin: 8px auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+}
+
+.round {
+  padding: 8px 12px;
+  background: #171725;
+  border: 1px solid #33334a;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+@media (max-width: 600px) {
+  .controls {
+    flex-wrap: wrap;
+  }
+
+  #amount {
+    width: 100%;
+    flex: 100%;
+  }
+
+  #bet,
+  #cash {
+    flex: 1;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+  <div class="logo">rovex_drop</div>
+
+  <div>
+    <span class="ton">
+      💎 TON <span id="balance">10,000</span>
+    </span>
+
+    <button class="wallet">Wallets</button>
+  </div>
+</nav>
+
+<h1>RECKET</h1>
+
+<div id="status">NEXT ROUND</div>
+
+<div id="multi">1.00x</div>
+
+<div id="timer">5</div>
+
+<div id="game">
+  <div id="rocket">🚀</div>
+  <div id="boom">💥</div>
+</div>
+
+<div class="controls">
+
+  <input
+    id="amount"
+    type="number"
+    min="1"
+    value="100"
+  >
+
+  <button id="bet">
+    BET
+  </button>
+
+  <button id="cash" disabled>
+    CASH OUT
+  </button>
+
+</div>
+
+<div id="result">
+  100 × 1.00x = 100
+</div>
+
+<div id="message">
+  Place your demo bet during countdown.
+</div>
+
+<div class="history-title">
+  PREVIOUS ROUNDS
+</div>
+
+<div id="history"></div>
+
+
+<script>
+
+var balance = 10000;
+var multiplier = 1;
+var flying = false;
+var betAmount = 0;
+var hasBet = false;
+
+var balanceText = document.getElementById("balance");
+var statusText = document.getElementById("status");
+var multiText = document.getElementById("multi");
+var timerText = document.getElementById("timer");
+
+var rocket = document.getElementById("rocket");
+var boom = document.getElementById("boom");
+
+var amount = document.getElementById("amount");
+var betButton = document.getElementById("bet");
+var cashButton = document.getElementById("cash");
+
+var resultText = document.getElementById("result");
+var messageText = document.getElementById("message");
+
+var historyBox = document.getElementById("history");
+
+
+function updateBalance() {
+  balanceText.textContent =
+    balance.toLocaleString();
+}
+
+
+function updateResult() {
+
+  var number = Number(amount.value);
+
+  if (hasBet) {
+    number = betAmount;
+  }
+
+  var result =
+    Math.floor(number * multiplier);
+
+  resultText.textContent =
+    number +
+    " × " +
+    multiplier.toFixed(2) +
+    "x = " +
+    result;
+}
+
+
+function startCountdown() {
+
+  flying = false;
+  hasBet = false;
+  betAmount = 0;
+
+  betButton.disabled = false;
+  cashButton.disabled = true;
+
+  statusText.textContent =
+    "NEXT ROUND";
+
+  multiplier = 1;
+
+  multiText.textContent =
+    "1.00x";
+
+  updateResult();
+
+  messageText.textContent =
+    "BET is open.";
+
+  var seconds = 5;
+
+  timerText.textContent =
+    seconds;
+
+
+  var countdown = setInterval(function() {
+
+    seconds--;
+
+    timerText.textContent =
+      seconds;
+
+
+    if (seconds <= 0) {
+
+      clearInterval(countdown);
+
+      startRocket();
+
+    }
+
+  }, 1000);
+}
+
+
+function startRocket() {
+
+  flying = true;
+
+  betButton.disabled = true;
+
+  statusText.textContent =
+    "FLYING";
+
+  timerText.textContent =
+    "";
+
+  if (hasBet) {
+    cashButton.disabled = false;
+  } else {
+    cashButton.disabled = true;
+  }
+
+  messageText.textContent =
+    "Rocket is flying.";
+
+  multiplier = 1;
+
+
+  var time = 0;
+
+  var crashAt =
+    50 + Math.floor(
+      Math.random() * 100
+    );
+
+
+  var run = setInterval(function() {
+
+    time++;
+
+    multiplier +=
+      0.04;
+
+    multiText.textContent =
+      multiplier.toFixed(2) + "x";
+
+    updateResult();
+
+
+    var x =
+      50 +
+      Math.random() * 30 -
+      15;
+
+    var y =
+      50 +
+      Math.random() * 20 -
+      10;
+
+    rocket.style.left =
+      x + "%";
+
+    rocket.style.top =
+      y + "%";
+
+
+    if (time >= crashAt) {
+
+      clearInterval(run);
+
+      crash();
+
+    }
+
+  }, 100);
+}
+
+
+function crash() {
+
+  flying = false;
+
+  cashButton.disabled = true;
+
+  statusText.textContent =
+    "CRASH!";
+
+  messageText.textContent =
+    "Rocket crashed at " +
+    multiplier.toFixed(2) +
+    "x";
+
+
+  var item =
+    document.createElement("div");
+
+  item.className =
+    "round";
+
+  item.textContent =
+    multiplier.toFixed(2) + "x";
+
+  historyBox.insertBefore(
+    item,
+    historyBox.firstChild
+  );
+
+
+  if (hasBet) {
+
+    messageText.textContent =
+      "Crash! Demo bet lost.";
+
+  }
+
+
+  rocket.style.display =
+    "none";
+
+  boom.style.display =
+    "block";
+
+
+  setTimeout(function() {
+
+    boom.style.display =
+      "none";
+
+    rocket.style.display =
+      "block";
+
+    rocket.style.left =
+      "50%";
+
+    rocket.style.top =
+      "50%";
+
+    startCountdown();
+
+  }, 1500);
+}
+
+
+betButton.onclick = function() {
+
+  if (flying) {
+    return;
+  }
+
+  var number =
+    Number(amount.value);
+
+
+  if (number <= 0) {
+
+    messageText.textContent =
+      "Enter an amount.";
+
+    return;
+  }
+
+
+  if (number > balance) {
+
+    messageText.textContent =
+      "Not enough TON.";
+
+    return;
+  }
+
+
+  balance -= number;
+
+  betAmount = number;
+
+  hasBet = true;
+
+  updateBalance();
+
+  updateResult();
+
+  messageText.textContent =
+    "BET " +
+    number +
+    " TON";
+
+  cashButton.disabled =
+    false;
+};
+
+
+cashButton.onclick = function() {
+
+  if (!flying || !hasBet) {
+    return;
+  }
+
+
+  var reward =
+    Math.floor(
+      betAmount * multiplier
+    );
+
+
+  balance += reward;
+
+  updateBalance();
+
+  hasBet = false;
+
+  cashButton.disabled =
+    true;
+
+
+  messageText.textContent =
+    "CASH OUT: +" +
+    reward +
+    " TON";
+
+};
+
+
+startCountdown();
+
+</script>
+
+</body>
+</html>
